@@ -1,5 +1,3 @@
-use yandex_music::YandexMusicClient;
-
 type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
 
 pub struct TokenProvider;
@@ -26,7 +24,7 @@ impl TokenProvider {
     }
 
     pub async fn validate(token: String) -> Result<u64> {
-        let client = YandexMusicClient::builder(&token).build()?;
+        let client = crate::util::tls::yandex_music_client(token)?;
         let status = client.get_account_status().await?;
 
         status.account.uid.ok_or("No user id found".into())

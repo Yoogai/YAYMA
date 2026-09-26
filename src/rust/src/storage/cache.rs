@@ -43,7 +43,7 @@ impl HttpCache {
                 .join("http_cache")
         };
 
-        let client = reqwest::Client::builder()
+        let client = crate::util::tls::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 YandexMusic/5.82.0")
             .pool_max_idle_per_host(5)
             .timeout(std::time::Duration::from_secs(30))

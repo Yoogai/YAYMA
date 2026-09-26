@@ -200,7 +200,7 @@ impl ApiService {
             HeaderValue::from_str("music-application://desktop")?,
         );
 
-        let http_client = reqwest::Client::builder()
+        let http_client = crate::util::tls::builder()
             .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36 YandexMusic/5.110.1")
             .default_headers(headers.clone())
             .brotli(true)
@@ -222,7 +222,7 @@ impl ApiService {
             "X-Yandex-Music-Client",
             HeaderValue::from_str(DEFAULT_CLIENT_ID)?,
         );
-        let file_info_http_client = reqwest::Client::builder()
+        let file_info_http_client = crate::util::tls::builder()
             .default_headers(file_info_headers)
             .timeout(FILE_INFO_REQUEST_TIMEOUT)
             .build()?;

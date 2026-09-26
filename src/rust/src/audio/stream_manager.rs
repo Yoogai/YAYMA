@@ -105,7 +105,7 @@ pub struct StreamManager {
 
 impl StreamManager {
     pub fn new(api: Arc<ApiService>, url_cache: UrlCache, track_cache: Arc<TrackCache>) -> Self {
-        let http_client = reqwest::Client::builder()
+        let http_client = crate::util::tls::builder()
             .pool_max_idle_per_host(4)
             .pool_idle_timeout(std::time::Duration::from_secs(60))
             .timeout(std::time::Duration::from_secs(10))
