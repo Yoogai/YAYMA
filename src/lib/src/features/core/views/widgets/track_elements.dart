@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:m3e_core/m3e_core.dart';
@@ -276,6 +277,107 @@ class TrackCover extends StatelessWidget {
     }
 
     return cover;
+  }
+}
+
+class TrackPlayingIndicator extends StatefulWidget {
+  final bool isPlaying;
+  final double height;
+  final Color? color;
+
+  const TrackPlayingIndicator({
+    required this.isPlaying,
+    super.key,
+    this.height = 16,
+    this.color,
+  });
+
+  @override
+  State<TrackPlayingIndicator> createState() => _TrackPlayingIndicatorState();
+}
+
+class _TrackPlayingIndicatorState extends State<TrackPlayingIndicator>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1800),
+    );
+    if (widget.isPlaying) _controller.repeat();
+  }
+
+  @override
+  void didUpdateWidget(TrackPlayingIndicator oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isPlaying && !_controller.isAnimating) {
+      _controller.repeat();
+    } else if (!widget.isPlaying && _controller.isAnimating) {
+      _controller.stop();
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final color = widget.color ?? Theme.of(context).colorScheme.primary;
+    if (!widget.isPlaying) {
+      // Пауза: статичные бары минимальной высоты, размер фиксирован.
+      return SizedBox(
+        height: widget.height,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: List.generate(
+            3,
+            (i) => Container(
+              width: 3,
+              height: i == 1 ? widget.height * 0.5 : widget.height * 0.3,
+              margin: EdgeInsets.only(left: i == 0 ? 0 : 2),
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
+        ),
+      );
+    }
+    return SizedBox(
+      height: widget.height,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, _) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: List.generate(3, (i) {
+              // Плавная спокойная волна: малая амплитуда, синусоида,
+              // небольшой сдвиг фазы между полосами.
+              final phase = _controller.value * 2 * math.pi + i * 1.4;
+              final scale = 0.55 + 0.2 * math.sin(phase);
+              return Container(
+                width: 3,
+                height: widget.height * scale.clamp(0.35, 0.75),
+                margin: EdgeInsets.only(left: i == 0 ? 0 : 2),
+                decoration: BoxDecoration(
+                  color: color,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              );
+            }),
+          );
+        },
+      ),
+    );
   }
 }
 

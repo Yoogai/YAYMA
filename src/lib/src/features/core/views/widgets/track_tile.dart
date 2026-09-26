@@ -352,9 +352,12 @@ class _CommonTrackTileState extends State<CommonTrackTile> {
                             child: Row(
                               children: [
                                 if (widget.leading != null) ...[
-                                  _adjustLeading(
-                                    widget.leading!,
-                                    isNarrow,
+                                  _LeadingPlayingBadge(
+                                    trackId: widget.trackId,
+                                    child: _adjustLeading(
+                                      widget.leading!,
+                                      isNarrow,
+                                    ),
                                   ),
                                   SizedBox(width: isNarrow ? 12 : 16),
                                 ],
@@ -381,12 +384,10 @@ class _CommonTrackTileState extends State<CommonTrackTile> {
                                                 onTap: widget.onTitleTap,
                                                 child: SignalBuilder(
                                                   builder: (context) {
-                                                    final currentTrackId =
+                                                    final isCurrent =
                                                         currentTrackIdSignal
-                                                            .value;
-                                                    final isPlaying =
-                                                        currentTrackId ==
-                                                        widget.trackId;
+                                                                .value ==
+                                                            widget.trackId;
 
                                                     return ValueListenableBuilder<
                                                       bool
@@ -402,16 +403,18 @@ class _CommonTrackTileState extends State<CommonTrackTile> {
                                                             return Text(
                                                               widget.title,
                                                               style: TextStyle(
-                                                                color: isPlaying
+                                                                color: isCurrent
                                                                     ? Theme.of(
                                                                         context,
                                                                       ).colorScheme.primary
                                                                     : Theme.of(
                                                                         context,
                                                                       ).colorScheme.onSurface,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .bold,
+                                                                fontWeight: isCurrent
+                                                                    ? FontWeight
+                                                                          .bold
+                                                                    : FontWeight
+                                                                          .w400,
                                                                 fontSize:
                                                                     isNarrow
                                                                     ? 14
@@ -517,6 +520,65 @@ class _CommonTrackTileState extends State<CommonTrackTile> {
               },
             ),
           ),
+        );
+      },
+    );
+  }
+}
+
+/// Бейдж поверх leading (обычно обложки): виден только у текущего трека.
+/// При воспроизведении — анимированный эквалайзер, на паузе — статичный.
+class _LeadingPlayingBadge extends StatelessWidget {
+  final String trackId;
+  final Widget child;
+
+  const _LeadingPlayingBadge({required this.trackId, required this.child});
+
+  @override
+  Widget build(BuildContext context) {
+    return SignalBuilder(
+      builder: (context) {
+        final isCurrent = currentTrackIdSignal.value == trackId;
+        if (!isCurrent) return child;
+        final isPlaying = isPlayingSignal.value;
+        final scheme = Theme.of(context).colorScheme;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            child,
+            Positioned(
+              right: -6,
+              bottom: -6,
+              child: Tooltip(
+                message: isPlaying ? 'Сейчас играет' : 'Текущий трек на паузе',
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  alignment: Alignment.center,
+                  decoration: BoxDecoration(
+                    color: scheme.primary,
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: scheme.surface,
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.3),
+                        blurRadius: 6,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TrackPlayingIndicator(
+                    isPlaying: isPlaying,
+                    height: 12,
+                    color: scheme.onPrimary,
+                  ),
+                ),
+              ),
+            ),
+          ],
         );
       },
     );
