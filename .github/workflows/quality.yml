@@ -110,3 +110,24 @@ jobs:
           flutter config --enable-macos-desktop
           flutter pub get
           flutter build macos --release
+
+      - name: Package macOS DMG
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        run: |
+          APP="src/build/macos/Build/Products/Release/yayma.app"
+          test -d "$APP"
+          hdiutil create \
+            -volname "YAYMA" \
+            -srcfolder "$APP" \
+            -ov \
+            -format UDZO \
+            "yayma-macos.dmg"
+
+      - name: Upload macOS DMG
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-artifact@v4
+        with:
+          name: yayma-macos-${{ runner.arch }}
+          path: yayma-macos.dmg
+          if-no-files-found: error
+          retention-days: 14
