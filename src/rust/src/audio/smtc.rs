@@ -1,4 +1,6 @@
-use souvlaki::{MediaControlEvent, MediaControls, MediaMetadata, MediaPlayback, PlatformConfig};
+use souvlaki::{
+    MediaControlEvent, MediaControls, MediaMetadata, MediaPlayback, MediaPosition, PlatformConfig,
+};
 
 #[cfg(target_os = "windows")]
 use windows::{Win32::UI::Shell::SetCurrentProcessExplicitAppUserModelID, core::w};
@@ -57,6 +59,9 @@ impl SmtcManager {
                 }
                 MediaControlEvent::Pause => {
                     let _ = cmd_tx_clone.send(AudioMessage::Pause);
+                }
+                MediaControlEvent::Toggle => {
+                    let _ = cmd_tx_clone.send(AudioMessage::PlayPause);
                 }
                 MediaControlEvent::Next => {
                     let _ = cmd_tx_clone.send(AudioMessage::Next);
@@ -138,11 +143,12 @@ impl SmtcManager {
         }
     }
 
-    pub fn update_playback_status(&mut self, is_playing: bool) {
+    pub fn update_playback_status(&mut self, is_playing: bool, position_ms: u64) {
+        let progress = Some(MediaPosition(std::time::Duration::from_millis(position_ms)));
         let status = if is_playing {
-            MediaPlayback::Playing { progress: None }
+            MediaPlayback::Playing { progress }
         } else {
-            MediaPlayback::Paused { progress: None }
+            MediaPlayback::Paused { progress }
         };
 
         if let Err(e) = self.controls.set_playback(status) {

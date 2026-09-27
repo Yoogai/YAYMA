@@ -166,7 +166,10 @@ class MyApp extends StatelessWidget {
       useMaterial3: true,
       brightness: Brightness.dark,
       colorScheme: scheme,
-      fontFamily: 'Inter',
+      // Use the platform UI typeface on macOS (San Francisco). The project
+      // does not bundle Inter, so naming it there only forces an implicit
+      // fallback instead of expressing the intended native typography.
+      fontFamily: Platform.isMacOS ? null : 'Inter',
       scaffoldBackgroundColor: Colors.black,
       textTheme: textTheme,
       splashFactory: InkRipple.splashFactory,
