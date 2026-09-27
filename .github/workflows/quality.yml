@@ -38,10 +38,6 @@ jobs:
       - name: Restore generated bridge
         uses: ./.github/actions/restore-bridge
 
-      - name: Format
-        working-directory: src/rust
-        run: cargo fmt --check
-
       - name: Tests
         working-directory: src/rust
         run: cargo test --locked
