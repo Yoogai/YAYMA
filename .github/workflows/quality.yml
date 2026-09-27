@@ -7,6 +7,10 @@ on:
       - master
   workflow_dispatch:
 
+concurrency:
+  group: quality-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   generate-bridge:
     uses: ./.github/workflows/bridge.yml
