@@ -199,6 +199,7 @@ impl AudioSystem {
             let poll_handle = tokio::spawn(async move {
                 let mut last_track_id = None;
                 let mut last_playing = false;
+                let mut last_position_ms = u64::MAX;
 
                 loop {
                     tokio::time::sleep(std::time::Duration::from_millis(500)).await;
@@ -206,6 +207,7 @@ impl AudioSystem {
                     let current_track = signals_clone.current_track.get();
                     let current_track_id = current_track.as_ref().map(|t| t.id.clone());
                     let is_playing = signals_clone.is_playing.get();
+                    let position_ms = signals_clone.position_ms.get();
 
                     let mut smtc_guard: tokio::sync::MutexGuard<SmtcManager> =
                         smtc_clone.lock().await;
@@ -217,9 +219,12 @@ impl AudioSystem {
                         last_track_id = current_track_id;
                     }
 
-                    if is_playing != last_playing {
-                        smtc_guard.update_playback_status(is_playing);
+                    let position_changed = last_position_ms == u64::MAX
+                        || position_ms.abs_diff(last_position_ms) >= 750;
+                    if is_playing != last_playing || position_changed {
+                        smtc_guard.update_playback_status(is_playing, position_ms);
                         last_playing = is_playing;
+                        last_position_ms = position_ms;
                     }
                 }
             });
