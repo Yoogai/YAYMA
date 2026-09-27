@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:signals_flutter/signals_flutter.dart';
 import 'package:window_manager/window_manager.dart';
@@ -44,7 +45,7 @@ class _AppLayoutState extends State<AppLayout> {
         // tablets. A large Android screen must not select the desktop navbar.
         final isNarrow = Platform.isAndroid || screenWidth < 600;
 
-        return PopScope(
+        final content = PopScope(
           canPop: !canGoBackSignal.value,
           onPopInvokedWithResult: (didPop, result) {
             if (didPop) return;
@@ -170,6 +171,33 @@ class _AppLayoutState extends State<AppLayout> {
                 ],
               ),
             ),
+          ),
+        );
+
+        if (!Platform.isMacOS) return content;
+
+        return Focus(
+          autofocus: true,
+          child: CallbackShortcuts(
+            bindings: <ShortcutActivator, VoidCallback>{
+              const SingleActivator(LogicalKeyboardKey.digit1, meta: true):
+                  () => navigateTo(AppSection.home),
+              const SingleActivator(LogicalKeyboardKey.digit2, meta: true):
+                  () => navigateTo(AppSection.search),
+              const SingleActivator(LogicalKeyboardKey.digit3, meta: true):
+                  () => navigateTo(AppSection.liked),
+              const SingleActivator(LogicalKeyboardKey.digit4, meta: true):
+                  () => navigateTo(AppSection.playlists),
+              const SingleActivator(LogicalKeyboardKey.keyF, meta: true):
+                  () => navigateTo(AppSection.search),
+              const SingleActivator(LogicalKeyboardKey.comma, meta: true):
+                  () => navigateTo(AppSection.account),
+              const SingleActivator(LogicalKeyboardKey.bracketLeft, meta: true):
+                  () {
+                    if (canGoBackSignal.value) goBack();
+                  },
+            },
+            child: content,
           ),
         );
       },
