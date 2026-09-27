@@ -1,8 +1,11 @@
 name: Quality checks
 
 on:
-  push:
   pull_request:
+  push:
+    branches:
+      - master
+  workflow_dispatch:
 
 jobs:
   generate-bridge:
