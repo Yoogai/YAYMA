@@ -3964,6 +3964,7 @@ dependencies = [
  "rodio",
  "rusqlite",
  "rustls-platform-verifier",
+ "security-framework",
  "serde",
  "serde_json",
  "souvlaki",
