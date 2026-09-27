@@ -1,0 +1,65 @@
+name: Quality checks
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  rust:
+    name: Rust checks
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: System dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential cmake ninja-build pkg-config \
+            libgtk-3-dev libsecret-1-dev libsoup-3.0-dev libwebkit2gtk-4.1-dev \
+            libasound2-dev libkeybinder-3.0-dev libayatana-appindicator3-dev \
+            libdbus-1-dev clang lld libclang-dev llvm-dev
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+
+      - name: Rust cache
+        uses: Swatinem/rust-cache@v2
+        with:
+          workspaces: "src/rust -> src/target"
+
+      - name: Format
+        working-directory: src/rust
+        run: cargo fmt --check
+
+      - name: Tests
+        working-directory: src/rust
+        run: cargo test --locked
+
+      - name: Clippy
+        working-directory: src/rust
+        run: cargo clippy --locked --all-targets
+
+  flutter:
+    name: Flutter analyze
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Resolve dependencies
+        working-directory: src
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: src
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
